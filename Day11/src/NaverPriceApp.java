@@ -4,7 +4,9 @@ import java.net.*;
 import org.jsoup.Connection;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
+import org.jsoup.nodes.Element;
 import org.jsoup.select.Elements;
+import java.util.*;
 
 public class NaverPriceApp {
 	
@@ -60,7 +62,7 @@ public class NaverPriceApp {
 		//String html = getHtml(URL);
 		//System.out.println(html);
 		
-		//getHtmlByJsoup(URL);
+		getHtmlByJsoup(URL);
 		
 		
 //		'박경란'의 '집'은 '부천'입니다.
@@ -84,17 +86,140 @@ public class NaverPriceApp {
 		Document html = conn.get();
 		//System.out.println(html.toString());
 		
-		Elements files = html.select(".list_basis");
-		System.out.println(files.size());
+		//Elements files = html.select(".list_basis");
+		Elements files = html.select(".list_basis > div > div");
+		writeTxtFile("d:\\price.txt", files);
+		writeExcelFile("d:\\price.csv", files);
 		
-		for(int i=0; i<files.size(); i++) {
-			System.out.println(files.get(i).text());
+//		System.out.println(".list_basis의 길이 "+files.size());
+		
+		// List<Element>
+//		for(Element item : files) {
+//			//System.out.println(item.text());
+//			String goodsName = item.select(".basicList_link__1MaTN").text();
+//			String price = item.select(".price_num__2WUXn").text();
+//			String link = item.select(".basicList_link__1MaTN").attr("href");
+//			
+//			System.out.println(goodsName + ", " + price);
+//			System.out.println(link);
+//		}
+		
+//		for(int i=0; i<files.size(); i++) {
+//			System.out.println(files.get(i).text());
+//		}
+		
+		
+		
+//		//-- 컬렉션 프레임워크
+//		//-- 가변배열 / 배열같은 모양의 집합을 사용할 때 편하게 사용할 수 있다.
+//		
+//		//1. 맵 Map
+//		//arr[0] = "박경란"
+//		//arr[1] = "33"
+//		//"name" = "박경란"
+//		//"age" = "33"
+//		Map<String, String> map = new HashMap<String, String>();//값을 고정해주는것
+//		Map<String, String> map2 = new HashMap<String, String>();
+//		Map<String, String> map3 = new HashMap<String, String>();
+//		
+//		//-- 값을 넣는다.
+//		map.put("name", "박경란");
+//		map.put("age", "33");
+//		
+//		map2.put("name", "박경란1");
+//		map2.put("age", "30");
+//		
+//		map3.put("name", "박경란2");
+//		map3.put("age", "43");
+//		
+//		//--값을 꺼낸다.
+//		System.out.println(map.get("name"));
+//		
+//		
+//		// 2. 리스트 List
+//		// 가변배열
+//		
+//		List<Map> list = new ArrayList<Map>();
+//		list.add(map);
+//		list.add(map2);
+//		list.add(map3);
+//		
+//
+//		System.out.println(list.size());
+//				
+//		for(int i=0; i<list.size(); i++) {
+//			
+//			//--제너릭(List<Map> : 난 Map 객체만 받겠어) 
+//			System.out.println("이름 : " + list.get(i).get("name") + ", 나이 : " + list.get(i).get("age"));
+//			
+//			//--제너릭(List<Map>)이 아닐때 형변환이 필요
+//			System.out.println("이름 : " + ((Map)list.get(i)).get("name") + ", 나이 : " + ((Map)list.get(i)).get("age"));
+//		}
+//		
+//		//-- List 컬렉션의 "향상된 for문"
+//		// foreach
+//		for(Map item : list) {
+//			System.out.println("이름 : " + item.get("name") + ", 나이 : " + item.get("age"));
+//		}
+		
+	}
+	
+	private static void writeExcelFile(String fileName, Elements list) throws Exception {
+		File file = new File(fileName); // file = d:\price.csv
+		BufferedWriter writer = null;		
+		String lineFormat = "%d,%s,%s,%s\r\n";
+		String result = "순위,상품명,가격,링크\r\n";
+		int i=1;
+		
+		
+		for(Element item : list) {
+			//System.out.println(item.text());
+			String goodsName = item.select(".basicList_link__1MaTN").text();
+			String price = item.select(".price_num__2WUXn").text();
+			String link = item.select(".basicList_link__1MaTN").attr("href");
+			result += String.format(lineFormat, goodsName, price, link);
 		}
 		
+		try {
+			writer = new BufferedWriter(new FileWriter(file));
+			writer.write(result);
+		} catch(IOException ie) {
+			
+		} finally {
+			if(writer != null)
+				writer.close();
+		}
+		
+	}
+	
+	private static void writeTxtFile(String fileName, Elements list) throws Exception {
+		File file = new File(fileName);
+		BufferedWriter writer = null;		
+		String lineFormat = "%s %s link : %s\r\n";
+		String result = "";
+		
+		for(Element item : list) {
+			//System.out.println(item.text());
+			String goodsName = item.select(".basicList_link__1MaTN").text();
+			String price = item.select(".price_num__2WUXn").text().replace(",","");
+			String link = item.select(".basicList_link__1MaTN").attr("href");
+			result += String.format(lineFormat, goodsName, price, link);
+		}
+		
+		try {
+			writer = new BufferedWriter(new FileWriter(file));
+			writer.write(result);
+		} catch(IOException ie) {
+			
+		} finally {
+			if(writer != null)
+				writer.close();
+		}
 		
 	}
 	
 	
+	//-- java.net package
 	//-- URL을 가지고, 접속, HTML을 가지고 온다.
 	private static String getHtml(String pUrl) throws Exception{
 		
